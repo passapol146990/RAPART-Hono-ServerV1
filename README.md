@@ -1,5 +1,9 @@
 # 🚀 RAPART MobSF API Server
 
+```
+docker-compose up -d --build
+```
+
 High-performance API server for MobSF malware analysis pipeline, built with **Bun + Hono + MongoDB + Nginx**.
 
 ---

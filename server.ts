@@ -9,7 +9,7 @@ const app = new Hono()
 // Connect to MongoDB
 await database.connect()
 
-// Create storage directories
+// Create storage directories (handle shared volume case)
 const storageDirs = [
   './storage/apk/malware',
   './storage/apk/benign',
@@ -18,7 +18,14 @@ const storageDirs = [
 ]
 
 for (const dir of storageDirs) {
-  await mkdir(dir, { recursive: true })
+  try {
+    await mkdir(dir, { recursive: true })
+  } catch (error: any) {
+    // Ignore EEXIST errors (directory already exists from another instance)
+    if (error.code !== 'EEXIST') {
+      throw error
+    }
+  }
 }
 
 // Serve static files (Dashboard)
