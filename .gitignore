@@ -134,3 +134,20 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# Bun
+bun.lockb
+
+# Database (SQLite - old, using MongoDB now)
+data/
+*.db
+*.db-shm
+*.db-wal
+
+# Storage (APK files and reports)
+storage/apk/**/*.apk
+storage/reports/**/*.json
+!storage/**/.gitkeep
+
+# Docker volumes
+mongodb_data/

@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAPART MobSF Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-card.total .stat-value { color: #667eea; }
+        .stat-card.completed .stat-value { color: #10b981; }
+        .stat-card.pending .stat-value { color: #f59e0b; }
+        .stat-card.failed .stat-value { color: #ef4444; }
+
+        .tag-stats {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .tag-stats h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .tag-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .tag-bar {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .tag-label {
+            min-width: 100px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .tag-label.malware { color: #ef4444; }
+        .tag-label.benign { color: #10b981; }
+
+        .progress-bar {
+            flex: 1;
+            height: 30px;
+            background: #e5e7eb;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .progress-fill.malware {
+            background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .progress-fill.benign {
+            background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+        }
+
+        .actions {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .actions h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .message {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .message.success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #10b981;
+        }
+
+        .message.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #ef4444;
+        }
+
+        .refresh-info {
+            text-align: center;
+            color: white;
+            margin-top: 20px;
+            font-size: 0.9em;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        footer {
+            text-align: center;
+            color: white;
+            margin-top: 30px;
+            padding: 20px;
+        }
+
+        footer a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 RAPART MobSF Dashboard</h1>
+            <p class="subtitle">Real-time Malware Analysis Monitoring</p>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-card total">
+                <div class="stat-label">Total Tasks</div>
+                <div class="stat-value" id="total">-</div>
+            </div>
+            <div class="stat-card completed">
+                <div class="stat-label">Completed</div>
+                <div class="stat-value" id="completed">-</div>
+            </div>
+            <div class="stat-card pending">
+                <div class="stat-label">Pending</div>
+                <div class="stat-value" id="pending">-</div>
+            </div>
+            <div class="stat-card failed">
+                <div class="stat-label">Failed</div>
+                <div class="stat-value" id="failed">-</div>
+            </div>
+        </div>
+
+        <div class="tag-stats">
+            <h2>📊 Distribution by Type</h2>
+            <div class="tag-bars">
+                <div class="tag-bar">
+                    <div class="tag-label malware">Malware</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill malware" id="malware-bar" style="width: 0%">
+                            <span id="malware-count">0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="tag-bar">
+                    <div class="tag-label benign">Benign</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill benign" id="benign-bar" style="width: 0%">
+                            <span id="benign-count">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="actions">
+            <h2>➕ Add New Task</h2>
+            <form id="addTaskForm">
+                <div class="form-group">
+                    <label for="hash">File Hash (SHA256)</label>
+                    <input type="text" id="hash" name="hash" placeholder="abc123..." required>
+                </div>
+                <div class="form-group">
+                    <label for="tag">Classification</label>
+                    <select id="tag" name="tag" required>
+                        <option value="">Select type...</option>
+                        <option value="malware">Malware</option>
+                        <option value="benign">Benign</option>
+                    </select>
+                </div>
+                <button type="submit">Add Task</button>
+                <div class="message" id="message"></div>
+            </form>
+        </div>
+
+        <div class="refresh-info">
+            <div class="loading"></div>
+            Auto-refresh every 5 seconds
+        </div>
+
+        <footer>
+            <p>Built with ❤️ using <a href="https://bun.sh" target="_blank">Bun</a> + <a href="https://hono.dev" target="_blank">Hono</a> + <a href="https://www.mongodb.com" target="_blank">MongoDB</a></p>
+        </footer>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+
+        // Fetch and update statistics
+        async function fetchStats() {
+            try {
+                const response = await fetch(`${API_BASE}/stats`);
+                const data = await response.json();
+
+                // Update stat cards
+                document.getElementById('total').textContent = data.total || 0;
+                document.getElementById('completed').textContent = data.completed || 0;
+                document.getElementById('pending').textContent = data.pending || 0;
+                document.getElementById('failed').textContent = data.failed || 0;
+
+                // Update tag distribution
+                const malwareCount = data.byTag?.malware || 0;
+                const benignCount = data.byTag?.benign || 0;
+                const total = malwareCount + benignCount || 1; // Avoid division by zero
+
+                const malwarePercent = (malwareCount / total * 100).toFixed(1);
+                const benignPercent = (benignCount / total * 100).toFixed(1);
+
+                document.getElementById('malware-bar').style.width = malwarePercent + '%';
+                document.getElementById('malware-count').textContent = malwareCount;
+
+                document.getElementById('benign-bar').style.width = benignPercent + '%';
+                document.getElementById('benign-count').textContent = benignCount;
+
+            } catch (error) {
+                console.error('Failed to fetch stats:', error);
+            }
+        }
+
+        // Add new task
+        document.getElementById('addTaskForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const hash = document.getElementById('hash').value;
+            const tag = document.getElementById('tag').value;
+            const messageEl = document.getElementById('message');
+
+            try {
+                const response = await fetch(`${API_BASE}/add-task`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ hash, tag })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    messageEl.textContent = `✅ Task added successfully! Queue length: ${data.queueLength}`;
+                    messageEl.className = 'message success';
+                    messageEl.style.display = 'block';
+
+                    // Reset form
+                    document.getElementById('addTaskForm').reset();
+
+                    // Refresh stats
+                    fetchStats();
+                } else {
+                    messageEl.textContent = `❌ Error: ${data.error}`;
+                    messageEl.className = 'message error';
+                    messageEl.style.display = 'block';
+                }
+            } catch (error) {
+                messageEl.textContent = `❌ Failed to add task: ${error.message}`;
+                messageEl.className = 'message error';
+                messageEl.style.display = 'block';
+            }
+
+            // Hide message after 5 seconds
+            setTimeout(() => {
+                messageEl.style.display = 'none';
+            }, 5000);
+        });
+
+        // Initial fetch
+        fetchStats();
+
+        // Auto-refresh every 5 seconds
+        setInterval(fetchStats, 5000);
+    </script>
+</body>
+</html>
